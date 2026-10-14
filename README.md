@@ -13,7 +13,7 @@ Open **Bar Test → Workspaces → ovh-smoke-test**. The Workspace supplies thes
 - `OVH_CONSUMER_KEY`
 - `OVH_CLOUD_PROJECT_SERVICE`
 
-The provider endpoint is `ovh-eu`. No Terraform input variables are required.
+The provider endpoint is `ovh-eu`. The Workspace also supplies the Terraform input `ovh_project_id`. Each resource uses it explicitly as `service_name`: provider 2.22.0's environment fallback can otherwise create the bucket and then fail Terraform's Plan/State consistency check. The project identifier stays in encrypted Workspace inputs, outside this public repository.
 
 1. Choose the `main` revision and run **Plan** yourself.
 2. Inspect the saved plan. For a fresh state, the intended change is **8 to add, 0 to change, 0 to destroy**.
@@ -34,3 +34,7 @@ References: [OVHcloud pricing](https://www.ovhcloud.com/en/public-cloud/prices/)
 Preparation uses `terraform init -backend=false`, `terraform fmt -check`, `terraform validate`, and provider schema inspection. These steps do not create cloud resources. The configuration explicitly selects the HTTP backend. TFDoctor supplies its State endpoint, locking and run-scoped authentication at runtime; no endpoint or credentials are stored in this repository. Without that declaration, Terraform falls back to local State even when TF_HTTP_* variables are present. Existing saved Plans from the older revision are retained; run and review a new Plan only after the prior uncertain outcome has been reconciled.
 
 The external provider is distributed by OVHcloud under MPL-2.0. This repository references the provider through the Terraform registry and does not redistribute its binary or copy its implementation. See the upstream license and release provenance at the pinned version.
+
+## Existing tainted test resources
+
+An earlier owner-run Apply created the eight buckets, but Terraform marked them `tainted` after the provider's inconsistent `service_name` response. Fixing this configuration preserves that State. A new Plan can propose destroying and recreating these resources; review its replacements before approving Apply. Nothing in this repository clears taints, imports State, retries Apply, or deletes resources automatically.
