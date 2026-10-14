@@ -12,9 +12,19 @@ terraform {
   }
 }
 
-# Credentials and project identity are supplied by the TFDoctor Workspace.
+# Credentials are supplied by the TFDoctor Workspace.
 provider "ovh" {
   endpoint = "ovh-eu"
+}
+
+variable "ovh_project_id" {
+  description = "OVHcloud project identity, supplied through TFDoctor Workspace inputs."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[a-f0-9]{32}$", var.ovh_project_id))
+    error_message = "Provide the OVHcloud Public Cloud project identifier."
+  }
 }
 
 locals {
@@ -24,10 +34,12 @@ locals {
 }
 
 # Eight empty buckets: no instances, volumes, uploaded objects or paid add-ons.
-# OVH_CLOUD_PROJECT_SERVICE selects the project without putting its ID in Git.
+# Explicit identity avoids the provider's environment-fallback Plan/State mismatch.
+# The project identifier remains in the Workspace inputs rather than in Git.
 resource "ovh_cloud_project_storage" "smoke" {
   for_each = local.bucket_names
 
+  service_name = var.ovh_project_id
   name         = each.key
   region_name  = "DE"
   hide_objects = true
