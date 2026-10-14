@@ -31,6 +31,6 @@ References: [OVHcloud pricing](https://www.ovhcloud.com/en/public-cloud/prices/)
 
 ## Validation
 
-Preparation uses `terraform init -backend=false`, `terraform fmt -check`, `terraform validate`, and provider schema inspection. These steps do not create cloud resources. The Workspace state remains managed by TFDoctor; there is no embedded remote backend configuration.
+Preparation uses `terraform init -backend=false`, `terraform fmt -check`, `terraform validate`, and provider schema inspection. These steps do not create cloud resources. The configuration explicitly selects the HTTP backend. TFDoctor supplies its State endpoint, locking and run-scoped authentication at runtime; no endpoint or credentials are stored in this repository. Without that declaration, Terraform falls back to local State even when TF_HTTP_* variables are present. Existing saved Plans from the older revision are retained; run and review a new Plan only after the prior uncertain outcome has been reconciled.
 
 The external provider is distributed by OVHcloud under MPL-2.0. This repository references the provider through the Terraform registry and does not redistribute its binary or copy its implementation. See the upstream license and release provenance at the pinned version.

@@ -1,4 +1,7 @@
 terraform {
+  # TFDoctor supplies the endpoint, locking and run-scoped credentials.
+  backend "http" {}
+
   required_version = "= 1.14.2"
 
   required_providers {
