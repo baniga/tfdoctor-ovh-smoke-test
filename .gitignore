@@ -7,3 +7,9 @@
 crash.log
 crash.*.log
 .env
+
+# These contain only public, State-only demo settings; never account credentials.
+!scenarios/*.tfvars
+!scenario.auto.tfvars
+.lab-validation/
+__pycache__/

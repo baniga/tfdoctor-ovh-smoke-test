@@ -1,0 +1,95 @@
+{
+  "status": "passed",
+  "terraform": "1.14.2",
+  "ovhProvider": "2.22.0",
+  "testRuns": 14,
+  "mainTestRuns": 11,
+  "stateOnlyTestRuns": 3,
+  "scenarios": {
+    "no_changes": {
+      "no-op": 16
+    },
+    "update": {
+      "no-op": 14,
+      "update": 2
+    },
+    "replace": {
+      "no-op": 9,
+      "delete/create": 3,
+      "update": 4
+    },
+    "scale_down": {
+      "no-op": 14,
+      "delete": 2
+    },
+    "scale_up": {
+      "no-op": 16,
+      "create": 2
+    },
+    "output_only": {
+      "no-op": 16
+    },
+    "check_warning": {
+      "no-op": 16
+    },
+    "failed_apply_plan": {
+      "no-op": 11,
+      "delete/create": 1,
+      "update": 4
+    }
+  },
+  "stateOnlyActions": {
+    "delete/create": 1,
+    "update": 5
+  },
+  "sourceHashes": {
+    "main.tf": "db768f09f9c9a7bd9c1117dcfcd940440fd72f23d5375b3ee3cd87e06525f0bc",
+    ".terraform.lock.hcl": "1655be6e63edadc3d9e1ead5cc66a8e5d28dd40b5ed03eadc9d3cac4c0664d3b",
+    "lab.tf": "b26e04645909fef32b249c064c0baf8ace43c299d40d98357d3c5c645d74c7e8",
+    "lab-variables.tf": "634aebb615c8ff67f4a4673c7cc4f2254e0f6d777aef28be95adaa5e61b6eb11",
+    "modules/checks/main.tf": "d458081e474e7a554e30dafd191ca8fd02a7336ebf2654ca5fb632cbe3940d15",
+    "tests/lab.tftest.hcl": "07baf445508a21538f8927ec057a008904146f293ab77831dbc5f7c9c51b5850",
+    "state-only/main.tf": "eb4e67bd1ffa61de32d3aedd1a2daac757cc67051c837ddaea1781678e0ca09d",
+    "state-only/tests/state.tftest.hcl": "1bd6d48bdebba6ea8e7e2acdc77a3c7c736b69d017ae6e7606629ce6e3ad5c77",
+    "scenarios/01-update.tfvars": "816ad6fabd33b3695a6ced6eab3e8fac7a860d7b38912999e1f4ed904d7a5c1d",
+    "scenarios/02-replace.tfvars": "6df366f65d922d98e722ccb2897fcea153815ca9c31baf2d86d8c7492f1153e1",
+    "scenarios/03-scale-down.tfvars": "dddaf64ff8a2edb694d076a160ed41458e7d3b729505ece7d9fafff1067548f1",
+    "scenarios/04-scale-up.tfvars": "c6051a6ad6afa62b585387ff58866e9dcbe1d2b0df4d7a9ac4c3ff62a902f19c",
+    "scenarios/05-output-only.tfvars": "e293f03ae2d8122cd2e1abf21fda3daedc8fe2597ab1263eef9be5ba25414cc9",
+    "scenarios/06-plan-error.tfvars": "6e1a1a1bdc872b2d9eb60315a255a8b660fab4af7e1fb1a6246707a13bdda7c7",
+    "scenarios/07-check-warning.tfvars": "fd57a946e74c57b74e629325db8aa27fa621d9fe228cd5e756096ee86ee6cc20",
+    "scenarios/08-apply-error.tfvars": "d8d7a5b1f61b50c501ddc6ba4f0a1397f5414a79bfa78e418b4718c95db824e4"
+  },
+  "scope": "Mock OVH only; no credentials, real HTTP backend or real cloud resources.",
+  "limits": "Mock execution does not prove OVH billing, authentication, live drift or TFDoctor browser behavior.",
+  "baseCommit": "59ff5b443d004c68735482329a17fcc8dc5e687d",
+  "existingOvhDefinitionAndLockBytesPreserved": true,
+  "addedCloudResources": 0,
+  "mainStateOnlyAdditions": 8,
+  "optionalSeparateRootStateOnlyInstances": 6,
+  "sourcePolicy": {
+    "provider": "generic-git",
+    "auth": "anonymous",
+    "webhooks": false,
+    "githubInstallation": false,
+    "automaticRunsRequested": false
+  },
+  "failedPreparationAttempts": [
+    {
+      "reason": "SSH upload failed, so first test-helper dispatch exited with missing file. No Terraform execution. Recovered only after terminal status and successful upload."
+    },
+    {
+      "reason": "First mocked provider test supplied an incompatible empty list for a computed list-of-object default;0 passed/1errored/7skipped. Removed that unnecessary mock override. Real OVH source unchanged."
+    }
+  ],
+  "review": {
+    "assurance": "SelfReviewed / NOT independently reviewed",
+    "scope": "Actual source and test-only diff: fixed eight existing OVH definitions/namespace/DE/encryption/HTTP backend/lock, eight new builtin State-only instances, no provisioner/data/network/cost-bearing product or new credential; optional explicit failure defaults false. Mock plans and count checks are not real-account/UI acceptance."
+  },
+  "publication": {
+    "status": "Validated before merge; GitHub merge and branch refs provide publication identity",
+    "scenarioBranches": 8,
+    "realWorkspacePlanApply": "not performed",
+    "realStateOrCredentialWrite": "not performed"
+  }
+}
