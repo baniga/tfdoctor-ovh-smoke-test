@@ -1,40 +1,52 @@
-# OVHcloud smoke test for TFDoctor
+# TFDoctor feature lab on OVHcloud
 
-This small Terraform configuration declares **8 empty Object Storage buckets** in OVHcloud's **DE** region (Germany). It uses Terraform **1.14.2** and the official **ovh/ovh 2.22.0** provider, with the dependency lock file committed.
+The main root keeps the **8 existing empty OVHcloud buckets** unchanged and adds **8 built-in `terraform_data` instances**. The additions store values in Terraform State; they do not create cloud services or run scripts. Terraform remains **1.14.2**, OVH remains **2.22.0**, and the HTTP backend and dependency lock are preserved.
 
-The repository contains no account IDs, API credentials, state, uploaded objects, compute instances, volumes, replication or Object Lock. This public repository is intended as a disposable, readable test example.
+Use this lab to inspect actual resource references, explicit `depends_on`, a replacement chain, a local module, `count` / `for_each` groups, nested attributes, sensitive-field masking, outputs, and failure handling.
 
-## Run it in TFDoctor
+## Start in the existing Workspace
 
-Open **Bar Test → Workspaces → ovh-smoke-test**. The Workspace supplies these provider environment variables through its encrypted credential binding:
+1. Open **ovh-smoke-test → Run plan** and select the latest **main** revision.
+2. Review the Plan yourself. If the existing eight buckets are already managed, the intended new changes are **8 State-only resources to add**. No OVH bucket creation, replacement, update or deletion is introduced by this change.
+3. Approve and Apply yourself when the saved Plan matches what you want.
+4. Run main again to inspect a no-op, then select one of the `demo/*` branches below. Counts assume the main baseline was applied and Workspace inputs contain no overrides for the new `lab_*` variables.
 
-- `OVH_APPLICATION_KEY`
-- `OVH_APPLICATION_SECRET`
-- `OVH_CONSUMER_KEY`
-- `OVH_CLOUD_PROJECT_SERVICE`
+No Plan or Apply is started by this repository update. There are no CI workflows, provisioners, remote scripts or automatic run triggers. Existing provider credentials and `ovh_project_id` stay in the Workspace; no new API permissions are needed. Do not copy credentials into Git.
 
-The provider endpoint is `ovh-eu`. The Workspace also supplies the Terraform input `ovh_project_id`. Each resource uses it explicitly as `service_name`: provider 2.22.0's environment fallback can otherwise create the bucket and then fail Terraform's Plan/State consistency check. The project identifier stays in encrypted Workspace inputs, outside this public repository.
+## Select a test branch
 
-1. Choose the `main` revision and run **Plan** yourself.
-2. Inspect the saved plan. For a fresh state, the intended change is **8 to add, 0 to change, 0 to destroy**.
-3. Approve and run **Apply** yourself if the plan matches.
+| Branch | Expected change from the applied main baseline |
+| --- | --- |
+| `main` | 8 additions on upgrade; then 16 no-ops |
+| `demo/01-update` | 2 in-place State-only updates |
+| `demo/02-replace` | 3 State-only replacements and 4 State-only updates |
+| `demo/03-scale-down` | 2 State-only deletions, one from `count` and one from `for_each` |
+| `demo/04-scale-up` | 2 additional State-only instances |
+| `demo/05-output-only` | One output changes; all 16 resources remain no-op |
+| `demo/06-plan-error` | Intentional variable-validation failure; no Apply |
+| `demo/07-check-warning` | Intentional Terraform check warning; no resource changes |
+| `demo/08-apply-error` | Plan: 1 State-only replacement and 4 updates. If you approve Apply, an intentional postcondition fails. |
 
-The setup process does **not** run Plan or Apply. This example has no CI workflows or automatic run trigger. Validation without Plan/Apply cannot guarantee that a future cloud operation will succeed; OVH authorization, service availability and bucket-name uniqueness are checked separately as far as possible with read-only requests.
+Scenario branches add only `scenario.auto.tfvars`; their Terraform source and eight OVH definitions match main. The files in `scenarios/` are examples and are not automatically loaded by the main root. If you Apply a scenario, review and Apply main to restore the baseline before comparing another scenario. Every Apply remains your decision.
 
-## Expected cost and cleanup
+See **[LAB.md](LAB.md)** for the exact click path, useful resources to select, the feature coverage matrix and State/recovery tests. The optional **[state-only/](state-only/)** root is a separate six-resource fixture with no cloud provider, suitable for a dedicated State/history/restore Workspace.
 
-Empty Standard Object Storage buckets are expected to cost **zero**: OVHcloud charges for stored capacity and applicable transfer; its pricing table lists Standard API requests as free and no minimum storage duration. This is a pricing-based expectation, not a billing guarantee. Keep the buckets empty for this test. Uploading data, adding replication or changing storage classes can incur charges.
+## Cost
 
-After testing, use your normal Terraform workflow to review a destroy plan and remove these eight test buckets. Do not put valuable data in them: the provider's deletion implementation can empty a bucket before deleting it. The scoped credential is intended only for these test bucket names and their lifecycle; it cannot access KMS or create compute resources.
+The new resources have **zero additional cloud-resource cost**: `terraform_data` is built into Terraform and performs no cloud operations. The optional root also creates only State entries. The eight existing buckets stay empty; no uploaded objects, compute, disks, IPs, replication, Object Lock or paid add-ons are added.
 
-References: [OVHcloud pricing](https://www.ovhcloud.com/en/public-cloud/prices/), [official bucket resource](https://registry.terraform.io/providers/ovh/ovh/latest/docs/resources/cloud_project_storage), [provider 2.22.0 source](https://github.com/ovh/terraform-provider-ovh/tree/v2.22.0).
+Empty-bucket cost is expected to remain zero under OVHcloud's usage-based Object Storage pricing. This is an expectation for this lab, not a guarantee about your overall account bill. Stored data or later service changes can incur charges. [OVHcloud pricing](https://www.ovhcloud.com/en/public-cloud/prices/) · [Terraform built-in resource](https://developer.hashicorp.com/terraform/language/resources/terraform-data)
 
-## Validation
+## Reproduce validation without a cloud account
 
-Preparation uses `terraform init -backend=false`, `terraform fmt -check`, `terraform validate`, and provider schema inspection. These steps do not create cloud resources. The configuration explicitly selects the HTTP backend. TFDoctor supplies its State endpoint, locking and run-scoped authentication at runtime; no endpoint or credentials are stored in this repository. Without that declaration, Terraform falls back to local State even when TF_HTTP_* variables are present. Existing saved Plans from the older revision are retained; run and review a new Plan only after the prior uncertain outcome has been reconciled.
+With Terraform 1.14.2 and Python 3.9+ installed, run:
 
-The external provider is distributed by OVHcloud under MPL-2.0. This repository references the provider through the Terraform registry and does not redistribute its binary or copy its implementation. See the upstream license and release provenance at the pinned version.
+```sh
+python3 tools/verify_lab.py
+```
 
-## Existing tainted test resources
+The bounded verifier copies only explicit source files to an ignored scratch directory, removes cloud/backend/variable credential environment, initializes with the backend disabled, and runs **14 native Terraform tests**. OVH is mocked in memory; the separate root uses only built-ins. It asserts exact action counts, sensitive markers, replacement paths and unchanged mocked bucket actions. Logs and source hashes remain under `.lab-validation/` for inspection.
 
-An earlier owner-run Apply created the eight buckets, but Terraform marked them `tainted` after the provider's inconsistent `service_name` response. Fixing this configuration preserves that State. A new Plan can propose destroying and recreating these resources; review its replacements before approving Apply. Nothing in this repository clears taints, imports State, retries Apply, or deletes resources automatically.
+Mock tests prove configuration and scenario behavior. They do not prove actual OVH authentication, billing, live drift, TFDoctor UI acceptance or recovery. Those checks require your explicitly started Workspace runs. The existing eight OVH blocks, addresses, namespace, DE region, encryption, explicit project identity and provider lock are unchanged. Existing State or taints are never cleared by this code.
+
+The external OVH provider is referenced from the registry under its existing MPL-2.0 release; its binary is not redistributed here. No new external provider or dependency is introduced.
